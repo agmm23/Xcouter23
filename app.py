@@ -12,7 +12,7 @@ app = Flask(__name__)
 # )
 
 # region Conectar a base de datos y traer a un dataframe
-connect_string = 'mysql+mysqlconnector://agmm23:mysqlpassword1a@agmm23.mysql.pythonanywhere-services.com/xcouter_db'
+connect_string = 'mysql+mysqlconnector://agmm23:mysqlpassword1a@agmm23.mysql.pythonanywhere-services.com/agmm23$xcouter_db'
 
 sql_engine = sql.create_engine(connect_string)
 query = "select * from playbyplay limit 1" #Todo Cambiar la query por una de alchemy
