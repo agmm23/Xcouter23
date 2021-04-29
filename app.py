@@ -116,7 +116,7 @@ Percentage of 3 Point Shots Made (3PT%)  for all the teams in the given PbP df.'
 # ----------------------------------------------------------------------
 # Database connection
 # connect_string = 'mysql+mysqlconnector://agmm23:mysqlpassword1a@agmm23.mysql.pythonanywhere-services.com/agmm23$xcouter_db'
-connect_string = 'mysql+mysqlconnector://root:password@localhost/xcouter_lub_fem_2020'
+connect_string = 'mysql+mysqlconnector://root:password@localhost/xcouter_2021'
 
 sql_engine = sql.create_engine(connect_string)
 query = "select * from playbyplay" #Todo Cambiar la query por una de alchemy
