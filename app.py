@@ -140,11 +140,11 @@ stats_df.reset_index(inplace=True)
 
 app.layout = html.Div([
     html.H1('Equipo Local'),
-    dcc.Dropdown(
-        id='dropdown-team-local',
-        options=[{'label': k, 'value': k} for k in all_team_players.keys()],
-        value=all_teams[0]
-    ),
+    # dcc.Dropdown(
+    #     id='dropdown-team-local',
+    #     options=[{'label': k, 'value': k} for k in all_team_players.keys()],
+    #     value=all_teams[0]
+    # ),
     dash_table.DataTable(
         id='datatable-interactivity',
         columns=[
