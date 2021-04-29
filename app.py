@@ -137,7 +137,14 @@ stats_df = calcular_stats_x_team(df)
 
 stats_df.reset_index(inplace=True)
 
+
 app.layout = html.Div([
+    html.H1('Equipo Local'),
+    dcc.Dropdown(
+        id='dropdown-team-local',
+        options=[{'label': k, 'value': k} for k in all_team_players.keys()],
+        value=all_teams[0]
+    ),
     dash_table.DataTable(
         id='datatable-interactivity',
         columns=[
@@ -173,13 +180,57 @@ app.layout = html.Div([
             'height': 'auto'
         }
     ),
-
-    # html.Br(),
-    # html.Br(),
-    # html.Div(id='bar-container'),
-    # html.Div(id='choromap-container')
-
+    html.Br(),
+    html.Br(),
+    html.Div(id='bar-container')
 ])
+
+@app.callback(
+    Output(component_id='bar-container', component_property='children'),
+    [Input(component_id='datatable-interactivity', component_property="derived_virtual_data"),
+     Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_rows'),
+     Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_row_ids'),
+     Input(component_id='datatable-interactivity', component_property='selected_rows'),
+     Input(component_id='datatable-interactivity', component_property='derived_virtual_indices'),
+     Input(component_id='datatable-interactivity', component_property='derived_virtual_row_ids'),
+     Input(component_id='datatable-interactivity', component_property='active_cell'),
+     Input(component_id='datatable-interactivity', component_property='selected_cells')]
+)
+
+def update_bar(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows,
+               order_of_rows_indices, order_of_rows_names, actv_cell, slctd_cell):
+    print('***************************************************************************')
+    print('Data across all pages pre or post filtering: {}'.format(all_rows_data))
+    print('---------------------------------------------')
+    print("Indices of selected rows if part of table after filtering:{}".format(slctd_row_indices))
+    print("Names of selected rows if part of table after filtering: {}".format(slct_rows_names))
+    print("Indices of selected rows regardless of filtering results: {}".format(slctd_rows))
+    print('---------------------------------------------')
+    print("Indices of all rows pre or post filtering: {}".format(order_of_rows_indices))
+    print("Names of all rows pre or post filtering: {}".format(order_of_rows_names))
+    print("---------------------------------------------")
+    print("Complete data of active cell: {}".format(actv_cell))
+    print("Complete data of all selected cells: {}".format(slctd_cell))
+
+    dff = pd.DataFrame(all_rows_data)
+
+    # used to highlight selected countries on bar chart
+    colors = ['#7FDBFF' if i in slctd_row_indices else '#0074D9'
+              for i in range(len(dff))]
+
+    if "TEAM" in dff:
+        return [
+            dcc.Graph(id='bar-chart',
+                      figure=px.bar(
+                          data_frame=dff,
+                          x="TEAM",
+                          y='AST',
+                          labels={"AST": "Asistencias"}
+                      ).update_layout(showlegend=False, xaxis={'categoryorder': 'total ascending'})
+                      .update_traces(marker_color=colors, hovertemplate="<b>%{y}%</b><extra></extra>")
+                      )
+        ]
+
 #
 # @app.route('/')
 # def index():
