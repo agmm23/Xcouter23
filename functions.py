@@ -1,5 +1,15 @@
 import pandas as pd
 
+def calcular_puntos(df):
+    if df['success']==1 and df['actionType_x']=='3pt':
+        return 3
+    elif df['success']==1 and df['actionType_x']=='2pt':
+        return 2
+    elif df['success']==1 and df['actionType_x']=='freethrow':
+        return 1
+    else:
+        return 0
+
 def calcular_stats_x_team(df):
     '''stats_df: This function returns the Assists (AST), Steals (STL), Blocks (BLK), Offensive Rebounds (ORB), Defensive Rebounds (DRB), Opponent ORB (OppORB), Opponent DRB (OppDRB), Turnovers (TO), Opponent Turnovers (OppTO),
 Free Throw Attempts (FTA), Free Throws Made (FT), 2 Point Shot Attempts (2PTA), 2 Point Shots Made (2PT), 3 Point Shot Attempts (3PTA), 3 Point Shots Made (3PT),
