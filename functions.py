@@ -10,6 +10,7 @@ def calcular_puntos(df):
     else:
         return 0
 
+
 def calcular_stats_x_team(df):
     '''stats_df: This function returns the Assists (AST), Steals (STL), Blocks (BLK), Offensive Rebounds (ORB), Defensive Rebounds (DRB), Opponent ORB (OppORB), Opponent DRB (OppDRB), Turnovers (TO), Opponent Turnovers (OppTO),
 Free Throw Attempts (FTA), Free Throws Made (FT), 2 Point Shot Attempts (2PTA), 2 Point Shots Made (2PT), 3 Point Shot Attempts (3PTA), 3 Point Shots Made (3PT),
@@ -82,6 +83,8 @@ Percentage of 3 Point Shots Made (3PT%)  for all the teams in the given PbP df.'
     stats['2PT%'] = stats['2PT'] / stats['2PTA'] * 100
     # Percentage of 3 point shots made
     stats['3PT%'] = stats['3PT'] / stats['3PTA'] * 100
+    stats['2PTA%'] = stats['2PTA'] / stats['FGA'] * 100
+    stats['3PTA%'] = stats['3PTA'] / stats['FGA'] * 100
 
     #### FOUR FACTORS
     ## SHOOTING:
@@ -112,3 +115,53 @@ Percentage of 3 Point Shots Made (3PT%)  for all the teams in the given PbP df.'
     stats['OppFTRate'] = stats['OppFTA'] / stats['OppFGA']
 
     return stats
+
+#Toma los promedios de la tabla de la funcion calcular_stats_x_team y calcula las estadisticas para toda la liga
+def calcular_estadisticas_liga(stats_df):
+    league_stats = stats_df.sum(numeric_only=True)[['AST', 'STL', 'BLK', '2PTA', '2PT', '3PTA', '3PT', 'FTA', 'OppFTA',
+                                                    'FT', 'ORB', 'DRB', 'OppDRB', 'OppORB', 'TO', 'OppTO', 'Opp3PT',
+                                                    'FGA',
+                                                    'OppFGA', 'FG', 'OppFG', 'PTS']]
+    league_stats['FG%'] = league_stats['FG'] / league_stats['FGA'] * 100
+    # Ppercentage of 2 point shots made
+    league_stats['2PT%'] = league_stats['2PT'] / league_stats['2PTA'] * 100
+    # Percentage of 3 point shots made
+    league_stats['3PT%'] = league_stats['3PT'] / league_stats['3PTA'] * 100
+    league_stats['2PTA%'] = league_stats['2PTA'] / league_stats['FGA'] * 100
+    league_stats['3PTA%'] = league_stats['3PTA'] / league_stats['FGA'] * 100
+
+    #### FOUR FACTORS
+    ## SHOOTING:
+    # Effective Field Goal Percentage
+    # This measure is a scale corrected measure to identify field goal percentage for a team.
+    # With eFG% we do obtain the best relative measurement for points per field goal attempt; simple by multiplying by two.
+    # accounts for made three pointers (3PM). isolates a player’s (or team’s) shooting efficiency from the field.
+    league_stats['eFG%'] = (league_stats['FG'] + 0.5 * league_stats['3PT']) / league_stats['FGA']
+    league_stats['OppeFG%'] = (league_stats['OppFG'] + 0.5 * league_stats['Opp3PT']) / league_stats['OppFGA']
+
+    # True Shooting Percentage
+    # accounts for both three pointers and free throws.
+    # Provides a measure of total efficiency in scoring attempts, takes into account field goals, 3-point field goals and free throws.
+    league_stats['TS%'] = (league_stats['PTS'] / 2) / (league_stats['FGA'] + 0.44 * league_stats['FTA'])
+
+    ## REBOUNDINGS: ORBP, DRBP (offensive and Defensive Rebound Percentage)
+    league_stats['DREB%'] = league_stats['DRB'] / (league_stats['DRB'] + league_stats['OppORB'])
+    league_stats['OREB%'] = league_stats['ORB'] / (league_stats['ORB'] + league_stats['OppDRB'])
+
+    ## TURNOVER: Turnover Ratio
+    # Turnover percentage is an estimate of turnovers per plays. ( play = FGA + 0.44 * FTA + TO ) La definición de la NBA incluye AST en denominador
+    league_stats['TOV%'] = league_stats['TO'] / (league_stats['FGA'] + 0.44 * league_stats['FTA'] + league_stats['TO'])
+    league_stats['OppTOV%'] = league_stats['OppTO'] / (
+                league_stats['OppFGA'] + 0.44 * league_stats['OppFTA'] + league_stats['OppTO'])
+
+    ## FREE THROWS:
+    # Field Throw Attempt
+    league_stats['FTRate'] = league_stats['FTA'] / league_stats['FGA']
+    league_stats['OppFTRate'] = league_stats['OppFTA'] / league_stats['OppFGA']
+    league_stats = pd.DataFrame(league_stats).T
+    league_stats['TEAM'] = 'PROMEDIO_LIGA'
+    cols = league_stats.columns.tolist()
+    cols.insert(0, cols.pop(cols.index('TEAM')))
+    league_stats = league_stats.reindex(columns=cols)
+
+    return league_stats

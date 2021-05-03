@@ -11,7 +11,7 @@ from copy import deepcopy
 import plotly.graph_objects as go
 
 
-from functions import calcular_stats_x_team, calcular_puntos
+from functions import calcular_stats_x_team, calcular_puntos, calcular_estadisticas_liga
 
 
 
@@ -37,6 +37,12 @@ app = dash.Dash(__name__, prevent_initial_callbacks=True)
 df = pd.read_sql_query(query, sql_engine)
 stats_df = calcular_stats_x_team(df)
 stats_df.reset_index(inplace=True)
+
+stats_df_league_added = stats_df.append(calcular_estadisticas_liga(stats_df))
+stats_df_league_added.reset_index(inplace=True)
+stats_df_league_added.drop('index', axis=1, inplace=True)
+
+#Agrego
 
 keep = (df['team_name'] != "")
 df= df[keep].dropna(how='all')
@@ -68,14 +74,33 @@ app.layout = html.Div([
         options=[{'label': k, 'value': k} for k in sorted(teams_dict.values())],
         value=list(sorted(teams_dict.values()))[0]
     ),
+    html.H1('Ataque'),
+    html.H2('Shooting (FG)'),
+    #TODO Grafico de barras que compara como se distribuyen sus puntos versus los puntos de la liga (de 2 y de 3)
+    #TODO Grafico de barras que compara en sus tiros sus eficiencias versus las eficiencias de la liga (de 2 y de 3)
     html.Div([
-        html.H2('Grafico 1'),
+        html.H3('Puntos anotados - Con asistencia vs sin asistencia'),
         dcc.Graph(id='graph-scatter-assists')
     ], style={'width': '48%', 'display': 'inline-block'}),
     html.Div([
-        html.H2('Grafico 2'),
+        html.H3('Relación asistidor anotador'),
         dcc.Graph(id='graph-parcat-assists')
     ], style={'width': '48%', 'display': 'inline-block'}),
+    html.Div([
+        html.H3('Distribución de Lanzamientos de campo'),
+        dcc.Graph(id='graph-distr-LCI')
+    ], style={'width': '48%', 'display': 'inline-block'}),
+    # html.H2('Turnovers'),
+    # html.H2('Rebounding'),
+    # html.H2('Free Throws'),
+    #
+    #
+    # html.H1('Defensa'),
+    # html.H2('Shooting'),
+    # html.H2('Turnovers'),
+    # html.H2('Rebounding'),
+    # html.H2('Free Throws'),
+
     #Grilla, inhabilito temporalmente
     # dash_table.DataTable(
     #     id='datatable-interactivity',
@@ -119,7 +144,7 @@ app.layout = html.Div([
 
 #EQUIPO SELECCIONADO
 @app.callback(
-    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure')],
+    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure'), Output('graph-distr-LCI', 'figure')],
     [Input('dropdown-team-local', 'value')])
 
 def update_figures(selected_team):
@@ -170,7 +195,27 @@ def update_figures(selected_team):
         line={'color': pbp_parcat_assisted['points'], 'colorscale': 'YlGnBu'}
     ))
 
-    return fig_asisst_vs_not_assisted, fig_parcat_assisted
+#-----------------------------------------------------------------------------------------------------------------------
+# GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO
+    index_team = stats_df_league_added[stats_df_league_added['TEAM'] == selected_team].index[0]
+    index_promedio_liga = stats_df_league_added[stats_df_league_added['TEAM'] == 'PROMEDIO_LIGA'].index[0]
+
+    colors2pts = ['gainsboro', ] * len(stats_df_league_added['TEAM'])
+    colors3pts = ['grey', ] * len(stats_df_league_added['TEAM'])
+    colors2pts[index_team] = 'coral'
+    colors3pts[index_team] = 'cornflowerblue'
+    colors2pts[index_promedio_liga] = 'coral'
+    colors3pts[index_promedio_liga] = 'cornflowerblue'
+
+    fig_distr_LCI = go.Figure(data=[
+        go.Bar(name='3PTs', x=stats_df_league_added['TEAM'], y=stats_df_league_added['3PTA%'], marker_color=colors3pts),
+        go.Bar(name='2Pts', x=stats_df_league_added['TEAM'], y=stats_df_league_added['2PTA%'], marker_color=colors2pts),
+
+    ])
+
+    fig_distr_LCI.update_layout(barmode='stack')
+
+    return fig_asisst_vs_not_assisted, fig_parcat_assisted, fig_distr_LCI
 
 
 #Callback para la tabla, inhabilito temporalmente
