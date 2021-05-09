@@ -12,7 +12,9 @@ import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 
 
-from functions import calcular_stats_x_team, calcular_puntos, calcular_estadisticas_liga
+from functions import calcular_stats_x_team, calcular_puntos, calcular_estadisticas_liga, \
+    Grafico_barras_acumulado_2, Grafico_barras_simple, player_stats_df, agregar_team_a_statsxplayer, \
+    Grafico_barras_simple_players, x_team_stats_df
 from components.navbar import Navbar
 
 
@@ -37,6 +39,13 @@ app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[
 #Preparar data Frames
 #Dataframe de estadisticas
 df = pd.read_sql_query(query, sql_engine)
+
+#Dataframe por player
+
+player_stats_df = player_stats_df(df)
+
+player_stats_df_with_team = agregar_team_a_statsxplayer(player_stats_df, df)
+
 stats_df = calcular_stats_x_team(df)
 stats_df.reset_index(inplace=True)
 
@@ -67,6 +76,9 @@ pointsperplayer['not_assisted'] = playbyplay_points[playbyplay_points['Complemen
 pointsperplayer.reset_index(inplace=True)
 pointsperplayer.fillna(0, inplace=True)
 
+
+
+
 navbar = Navbar()
 
 app.layout = html.Div([
@@ -78,36 +90,169 @@ app.layout = html.Div([
         value=list(sorted(teams_dict.values()))[0]
     ),
     html.H1('Ataque'),
-    dbc.CardHeader(
-        dbc.Button(
-            "Shooting (FG)",
-            color="link",
-            id="btn-shooting-attack",
-        )
-    ),
-    #TODO Grafico de barras que compara como se distribuyen sus puntos versus los puntos de la liga (de 2 y de 3)
-    #TODO Grafico de barras que compara en sus tiros sus eficiencias versus las eficiencias de la liga (de 2 y de 3)
+    dbc.Row([
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Shooting (FG)",
+                    color="link",
+                    id="btn-shooting-attack",
+                )
+            ),
+                #TODO Grafico de barras que compara como se distribuyen sus puntos versus los puntos de la liga (de 2 y de 3)
+                #TODO Grafico de barras que compara en sus tiros sus eficiencias versus las eficiencias de la liga (de 2 y de 3)
 
-    dbc.Collapse(
-        dbc.CardBody(children=[
-            html.Div([
-                html.H3('Puntos anotados - Con asistencia vs sin asistencia'),
-                dcc.Graph(id='graph-scatter-assists')
-            ], style={'width': '48%', 'display': 'inline-block'}),
-            html.Div([
-                html.H3('Relación asistidor anotador'),
-                dcc.Graph(id='graph-parcat-assists')
-            ], style={'width': '48%', 'display': 'inline-block'}),
-            html.Div([
-                html.H3('Distribución de Lanzamientos de campo'),
-                dcc.Graph(id='graph-distr-LCI')
-            ], style={'width': '48%', 'display': 'inline-block'}),
+            dbc.Collapse(
+                dbc.CardBody(children=[
+                    html.Div([
+                        html.H3('Puntos anotados - Con asistencia vs sin asistencia'),
+                        dcc.Graph(id='graph-scatter-assists')
+                    ], style={'width': '48%', 'display': 'inline-block'}),
+                    html.Div([
+                        html.H3('Relación asistidor anotador'),
+                        dcc.Graph(id='graph-parcat-assists')
+                    ], style={'width': '48%', 'display': 'inline-block'}),
+                    html.Div([
+                        html.H3('Distribución de Lanzamientos de campo'),
+                        dcc.Graph(id='graph-distr-LCI-attack')
+                    ], style={'width': '48%', 'display': 'inline-block'}),
+                ]),
+                id="collapse-shooting-attack", is_open=False
+            ),
+        ], width=12),
+    ]),
+    #TURNOVERS EN ATAQUE ******************************************
+    dbc.Row([
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Turnovers (TO)",
+                    color="link",
+                    id="btn-turnovers-attack",
+                )
+            ),
+        ], width=12),
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Collapse(
+                dbc.CardBody(
+                    children=[
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div([
+                                    dcc.Graph(id='graph-TO-team-attack')
+                                ],)
+                            ], width=6),
+                            dbc.Col([
+                                html.Div([
+                                    dcc.Graph(id='graph-TO-player-attack')
+                                ])
+                            ], width=6),
+                        ])
+                    ]
+                ),
+            id="collapse-turnovers-attack", is_open=False)
+        ], width = 12)
+    ]),
+
+    #REBOTES EN ATAQUE ******************************************
+
+    dbc.Row([
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Rebounding",
+                    color="link",
+                    id="btn-rebounding-attack",
+                )
+            ),
+        ], width=12),
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Collapse(
+                dbc.CardBody(
+                    children=[
+                        html.Div([
+                            dcc.Graph(id='graph-OffRebounds-team_attack')
+                        ])
+                    ]
+                ),
+                id="collapse-rebounding-attack", is_open=False)
+        ], width=6)
+    ]),
+
+
+    # Tiros Libres ******************************************
+
+        dbc.Row([
+            dbc.Col([
+                dbc.CardHeader(
+                    dbc.Button(
+                        "Free Throws",
+                        color="link",
+                        id="btn-free_throws-attack",
+                    )
+                ),
+            ], width=12),
         ]),
-        id="collapse-shooting-attack", is_open=False
-    ),
-    html.H2('Turnovers'),
-    html.H2('Rebounding'),
-    html.H2('Free Throws'),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Collapse(
+                    dbc.CardBody(
+                        children=[
+                            html.Div([
+                                html.H3('Agregar aca graficos de Tiros libres'),
+                            ])
+                        ]
+                    ),
+                    id="collapse-free_throws-attack", is_open=False)
+            ], width=6)
+        ]),
+
+    #TODO Considerar las faltas personales recibidas ya que sería lo que importa en ataque
+#DEFENSA--------------------------------------------------------------------------------------
+    #TIROS---------------------------------------
+    dbc.Row([
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Shooting (FG)",
+                    color="link",
+                    id="btn-shooting-defense",
+                )
+            ),
+            # TODO Grafico de barras que compara como se distribuyen sus puntos versus los puntos de la liga (de 2 y de 3)
+            # TODO Grafico de barras que compara en sus tiros sus eficiencias versus las eficiencias de la liga (de 2 y de 3)
+            dbc.Collapse(
+                dbc.CardBody(children=[
+                    html.Div([
+                        html.H3('Distribución de Lanzamientos de campo'),
+                        dcc.Graph(id='graph-distr-LCI-defense')
+                    ], style={'width': '48%', 'display': 'inline-block'}),
+                ]),
+                id="collapse-shooting-defense", is_open=False
+            ),
+        ], width=12),
+
+    ]),
+    dbc.Row([
+
+    ]),
+    dbc.Row([
+
+    ]),
+    dbc.Row([
+
+    ]),
+
+
+    #========================================================================
+    #LAYOUT
     html.Br(),
     html.Br(),
     html.H1('Defensa'),
@@ -168,6 +313,8 @@ app.layout = html.Div([
 
 #Callbacks de los collapse elements
 #----------------------------------------------------------------------------------------------------------------------
+# ATAQUE
+#Shooting
 @app.callback(
     Output("collapse-shooting-attack", "is_open"),
     [Input("btn-shooting-attack", "n_clicks")],
@@ -177,6 +324,50 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+#Turnovers
+@app.callback(
+    Output("collapse-turnovers-attack", "is_open"),
+    [Input("btn-turnovers-attack", "n_clicks")],
+    [State("collapse-turnovers-attack", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+#Rebounding
+@app.callback(
+    Output("collapse-rebounding-attack", "is_open"),
+    [Input("btn-rebounding-attack", "n_clicks")],
+    [State("collapse-rebounding-attack", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+#Free throws
+@app.callback(
+    Output("collapse-free_throws-attack", "is_open"),
+    [Input("btn-free_throws-attack", "n_clicks")],
+    [State("collapse-free_throws-attack", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+#DEFENSA
+#Shooting
+@app.callback(
+    Output("collapse-shooting-defense", "is_open"),
+    [Input("btn-shooting-defense", "n_clicks")],
+    [State("collapse-shooting-defense", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
 
 @app.callback(
     Output("collapse-free-throws-defensive", "is_open"),
@@ -192,7 +383,9 @@ def toggle_collapse(n, is_open):
 
 #EQUIPO SELECCIONADO
 @app.callback(
-    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure'), Output('graph-distr-LCI', 'figure')],
+    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure'), Output('graph-distr-LCI-attack', 'figure'),
+     Output('graph-distr-LCI-defense', 'figure'), Output('graph-TO-team-attack', 'figure'),
+     Output('graph-OffRebounds-team_attack', 'figure'), Output('graph-TO-player-attack', 'figure')],
     [Input('dropdown-team-local', 'value')])
 
 def update_figures(selected_team):
@@ -244,26 +437,33 @@ def update_figures(selected_team):
     ))
 
 #-----------------------------------------------------------------------------------------------------------------------
-# GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO
-    index_team = stats_df_league_added[stats_df_league_added['TEAM'] == selected_team].index[0]
-    index_promedio_liga = stats_df_league_added[stats_df_league_added['TEAM'] == 'PROMEDIO_LIGA'].index[0]
+#ATAQUE
+# GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO EN ATAQUE
 
-    colors2pts = ['gainsboro', ] * len(stats_df_league_added['TEAM'])
-    colors3pts = ['grey', ] * len(stats_df_league_added['TEAM'])
-    colors2pts[index_team] = 'coral'
-    colors3pts[index_team] = 'cornflowerblue'
-    colors2pts[index_promedio_liga] = 'coral'
-    colors3pts[index_promedio_liga] = 'cornflowerblue'
+    fig_distr_LCI_attack = Grafico_barras_acumulado_2(stats_df_league_added, selected_team, '2PTA%', '3PTA%', '2Pts', '3PTs')
 
-    fig_distr_LCI = go.Figure(data=[
-        go.Bar(name='3PTs', x=stats_df_league_added['TEAM'], y=stats_df_league_added['3PTA%'], marker_color=colors3pts),
-        go.Bar(name='2Pts', x=stats_df_league_added['TEAM'], y=stats_df_league_added['2PTA%'], marker_color=colors2pts),
+# GRAFICO DE BARRAS DE DISTRIBUCION DE TURNOVERS EN ATAQUE
+    #Por equipo
+    fig_TO_team_attack = Grafico_barras_simple(stats_df_league_added, selected_team, 'TOV%', 'Turnovers')
+    #Por jugador
+    player_stats_df_with_team_to_graph = x_team_stats_df(player_stats_df_with_team, selected_team)
+    fig_TO_player_attack = Grafico_barras_simple_players(player_stats_df_with_team_to_graph, 'TOR%', 'Turnovers')
 
-    ])
 
-    fig_distr_LCI.update_layout(barmode='stack')
+# GRAFICO DE BARRAS DE DISTRIBUCION DE TURNOVERS EN ATAQUE
+    fig_Off_Reb_attack = Grafico_barras_simple(stats_df_league_added, selected_team, 'OREB%', 'Offensive Rebound')
 
-    return fig_asisst_vs_not_assisted, fig_parcat_assisted, fig_distr_LCI
+
+#-----------------------------------------------------------------------------------------------------------------------
+#DEFENSA
+# GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO EN DEFENSA
+
+    fig_distr_LCI_defense = Grafico_barras_acumulado_2(stats_df_league_added, selected_team, '2PTA%', '3PTA%', '2Pts', '3PTs')
+
+
+
+    return fig_asisst_vs_not_assisted, fig_parcat_assisted, fig_distr_LCI_attack, fig_distr_LCI_defense, \
+           fig_TO_team_attack, fig_Off_Reb_attack, fig_TO_player_attack
 
 
 # Callback para la tabla, inhabilito temporalmente
