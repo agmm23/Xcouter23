@@ -396,3 +396,4 @@ def Grafico_barras_simple_players(df, bar_df, name_bar):
 
     return graf_barras
 
+

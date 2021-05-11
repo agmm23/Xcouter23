@@ -20,6 +20,8 @@ def Navbar():
             ),
             dbc.NavItem(dbc.NavLink("Teams", href="#")),
             dbc.NavItem(dbc.NavLink("Players", href="#")),
+            dbc.NavItem(dbc.NavLink("Scouting", href="#")),
+            dbc.NavItem(dbc.NavLink("Match Review", href="#")),
         ],
         color="dark",
         dark=True,

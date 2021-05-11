@@ -33,7 +33,7 @@ query = "select * from playbyplay" #Todo Cambiar la query por una de alchemy
 # App Layout
 #app = Flask(__name__)
 
-app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, prevent_initial_callbacks=True, external_stylesheets=[dbc.themes.CERULEAN])
 
 
 #Preparar data Frames
@@ -90,43 +90,64 @@ app.layout = html.Div([
         value=list(sorted(teams_dict.values()))[0]
     ),
     html.H1('Ataque'),
+
     dbc.Row([
         dbc.Col([
             dbc.CardHeader(
                 dbc.Button(
-                    "Shooting (FG)",
+                    "Shooting - Score efficiently",
                     color="link",
                     id="btn-shooting-attack",
                 )
             ),
-                #TODO Grafico de barras que compara como se distribuyen sus puntos versus los puntos de la liga (de 2 y de 3)
-                #TODO Grafico de barras que compara en sus tiros sus eficiencias versus las eficiencias de la liga (de 2 y de 3)
-
-            dbc.Collapse(
-                dbc.CardBody(children=[
-                    html.Div([
-                        html.H3('Puntos anotados - Con asistencia vs sin asistencia'),
-                        dcc.Graph(id='graph-scatter-assists')
-                    ], style={'width': '48%', 'display': 'inline-block'}),
-                    html.Div([
-                        html.H3('Relación asistidor anotador'),
-                        dcc.Graph(id='graph-parcat-assists')
-                    ], style={'width': '48%', 'display': 'inline-block'}),
-                    html.Div([
-                        html.H3('Distribución de Lanzamientos de campo'),
-                        dcc.Graph(id='graph-distr-LCI-attack')
-                    ], style={'width': '48%', 'display': 'inline-block'}),
-                ]),
-                id="collapse-shooting-attack", is_open=False
-            ),
         ], width=12),
     ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Collapse(
+                dbc.CardBody(
+                    children=[
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div([
+                                    html.H4('Distribución Tiros de Campo Intentados'),
+                                    html.P('2PTA% = 2PTA / FGA * 100 y 3PTA% = 3PTA / FGA * 100'),
+                                    dcc.Graph(id='graph-distr-LCI-attack')
+                                ]),
+                            ]),
+                            dbc.Col([
+                                html.Div([
+                                    html.H4('Porcentaje de tiros de campo efectivos'),
+                                    html.P('eFG% = (FG + 0.5 * 3PT) / FGA'),
+                                    dcc.Graph(id='graph-effective-FG-percentage-attack')
+                                ]),
+                            ]),
+                        ]),
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div([
+                                    dcc.Graph(id='graph-scatter-assists')
+                                ], )
+                            ], width=6),
+                            dbc.Col([
+                                html.Div([
+                                    dcc.Graph(id='graph-parcat-assists')
+                                ]),
+                            ], width=6),
+                        ]),
+                    ]
+                ),
+                id="collapse-shooting-attack", is_open=False)
+        ], width=12)
+    ]),
+
     #TURNOVERS EN ATAQUE ******************************************
     dbc.Row([
         dbc.Col([
             dbc.CardHeader(
                 dbc.Button(
-                    "Turnovers (TO)",
+                    "Turnovers - Protect the basketball on offense",
                     color="link",
                     id="btn-turnovers-attack",
                 )
@@ -146,9 +167,11 @@ app.layout = html.Div([
                                 ],)
                             ], width=6),
                             dbc.Col([
-                                html.Div([
+                                dbc.Row([
+                                    html.Div([
                                     dcc.Graph(id='graph-TO-player-attack')
-                                ])
+                                    ])
+                                ]),
                             ], width=6),
                         ])
                     ]
@@ -163,7 +186,7 @@ app.layout = html.Div([
         dbc.Col([
             dbc.CardHeader(
                 dbc.Button(
-                    "Rebounding",
+                    "Rebounding - Grab as many offensive rebounds as possible",
                     color="link",
                     id="btn-rebounding-attack",
                 )
@@ -177,6 +200,8 @@ app.layout = html.Div([
                 dbc.CardBody(
                     children=[
                         html.Div([
+                            html.H4('Porcentaje de rebotes ofensivos sobre rebotes generados en ataque'),
+                            html.P('OREB% = ORB / (ORB + OppDRB)'),
                             dcc.Graph(id='graph-OffRebounds-team_attack')
                         ])
                     ]
@@ -186,13 +211,13 @@ app.layout = html.Div([
     ]),
 
 
-    # Tiros Libres ******************************************
+    # TIROS LIBRES EN ATAQUE ******************************************
 
         dbc.Row([
             dbc.Col([
                 dbc.CardHeader(
                     dbc.Button(
-                        "Free Throws",
+                        "Free Throws - Get to the foul line as often as possible",
                         color="link",
                         id="btn-free_throws-attack",
                     )
@@ -206,7 +231,7 @@ app.layout = html.Div([
                     dbc.CardBody(
                         children=[
                             html.Div([
-                                html.H3('Agregar aca graficos de Tiros libres'),
+                                dcc.Graph(id='graph-freethrows-team-attack'),
                             ])
                         ]
                     ),
@@ -216,12 +241,15 @@ app.layout = html.Div([
 
     #TODO Considerar las faltas personales recibidas ya que sería lo que importa en ataque
 #DEFENSA--------------------------------------------------------------------------------------
+    html.Br(),
+    html.Br(),
+    html.H1('Defensa'),
     #TIROS---------------------------------------
     dbc.Row([
         dbc.Col([
             dbc.CardHeader(
                 dbc.Button(
-                    "Shooting (FG)",
+                    "Shooting - Goals Received",
                     color="link",
                     id="btn-shooting-defense",
                 )
@@ -232,7 +260,6 @@ app.layout = html.Div([
                 dbc.CardBody(children=[
                     html.Div([
                         html.H3('Distribución de Lanzamientos de campo'),
-                        dcc.Graph(id='graph-distr-LCI-defense')
                     ], style={'width': '48%', 'display': 'inline-block'}),
                 ]),
                 id="collapse-shooting-defense", is_open=False
@@ -240,72 +267,135 @@ app.layout = html.Div([
         ], width=12),
 
     ]),
+    #TURNOVERS EN DEFENSA ******************************************
     dbc.Row([
-
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Turnovers - Get the basketball on deffense",
+                    color="link",
+                    id="btn-turnovers-defense",
+                )
+            ),
+        ], width=12),
     ]),
+
     dbc.Row([
-
+        dbc.Col([
+            dbc.Collapse(
+                dbc.CardBody(
+                    children=[
+                        dbc.Row([
+                            dbc.Col([
+                                html.Div([
+                                    dcc.Graph(id='graph-TO-team-defense')
+                                ],)
+                            ], width=6),
+                        ])
+                    ]
+                ),
+            id="collapse-turnovers-defense", is_open=False)
+        ], width = 12)
     ]),
+
+    #REBOTES EN DEFENSA ******************************************
+
     dbc.Row([
-
+        dbc.Col([
+            dbc.CardHeader(
+                dbc.Button(
+                    "Rebounding - Grab as many deffensive rebounds as possible",
+                    color="link",
+                    id="btn-rebounding-defense",
+                )
+            ),
+        ], width=12),
     ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Collapse(
+                dbc.CardBody(
+                    children=[
+                        html.Div([
+                            html.H4('Porcentaje de rebotes defensivos sobre rebotes generados en defensa'),
+                            html.P('DREB% = DRB / (DRB + OppORB)'),
+                            dcc.Graph(id='graph-DefRebounds-team-defense')
+                        ])
+                    ]
+                ),
+                id="collapse-rebounding-defense", is_open=False)
+        ], width=6)
+    ]),
+
+
+    # TIROS LIBRES EN DEFENSA ******************************************
+
+        dbc.Row([
+            dbc.Col([
+                dbc.CardHeader(
+                    dbc.Button(
+                        "Free Throws - Don't get the rival to the foul line",
+                        color="link",
+                        id="btn-free-throws-defense",
+                    )
+                ),
+            ], width=12),
+        ]),
+
+        dbc.Row([
+            dbc.Col([
+                dbc.Collapse(
+                    dbc.CardBody(
+                        children=[
+                            html.Div([
+                                dcc.Graph(id='graph-freethrows-team-defense'),
+                            ])
+                        ]
+                    ),
+                    id="collapse-free_throws-defense", is_open=False)
+            ], width=6)
+        ]),
 
 
     #========================================================================
-    #LAYOUT
-    html.Br(),
-    html.Br(),
-    html.H1('Defensa'),
-    html.H2('Shooting'),
-    html.H2('Turnovers'),
-    html.H2('Rebounding'),
-    dbc.CardHeader(
-        dbc.Button(
-            "Free Throws",
-            color="link",
-            id="btn-free-throws-defensive",
-        )
-    ),
-    dbc.Collapse(
-        dbc.CardBody("Graficos de free throws"),
-        id="collapse-free-throws-defensive", is_open=False
-    ),
+
     # Grilla, inhabilito temporalmente
-    dash_table.DataTable(
-        id='datatable-interactivity',
-        columns=[
-            {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
-            #if i == "iso_alpha3" or i == "year" or i == "id"
-            #else {"name": i, "id": i, "deletable": True, "selectable": True}
-            for i in stats_df.columns
-        ],
-        data=stats_df.to_dict('records'),  # the contents of the table
-        #editable=True,              # allow editing of data inside all cells
-        filter_action="native",     # allow filtering of data by user ('native') or not ('none')
-        sort_action="native",       # enables data to be sorted per-column by user or not ('none')
-        sort_mode="multi",         # sort across 'multi' or 'single' columns
-        column_selectable="multi",  # allow users to select 'multi' or 'single' columns
-        row_selectable="multi",     # allow users to select 'multi' or 'single' rows
-        row_deletable=True,         # choose if user can delete a row (True) or not (False)
-        selected_columns=[],        # ids of columns that user selects
-        selected_rows=[],           # indices of rows that user selects
-        page_action="native",       # all data is passed to the table up-front or not ('none')
-        page_current=0,             # page number that user is on
-        page_size=15,                # number of rows visible per page
-        style_cell={                # ensure adequate header width when text is shorter than cell's text
-            'minWidth': 95, 'maxWidth': 95, 'width': 95
-        },
-        # style_cell_conditional=[    # align text columns to left. By default they are aligned to right
-        #     {
-        #         'if': {'column_id': c},
-        #         'textAlign': 'left'
-        #     } for c in ['country', 'iso_alpha3']
-        # ],
-        style_data={                # overflow cells' content into multiple lines
-            'whiteSpace': 'normal',
-            'height': 'auto'
-        }
-    ),
+    # dash_table.DataTable(
+    #     id='datatable-interactivity',
+    #     columns=[
+    #         {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
+    #         #if i == "iso_alpha3" or i == "year" or i == "id"
+    #         #else {"name": i, "id": i, "deletable": True, "selectable": True}
+    #         for i in stats_df.columns
+    #     ],
+    #     data=stats_df.to_dict('records'),  # the contents of the table
+    #     #editable=True,              # allow editing of data inside all cells
+    #     filter_action="native",     # allow filtering of data by user ('native') or not ('none')
+    #     sort_action="native",       # enables data to be sorted per-column by user or not ('none')
+    #     sort_mode="multi",         # sort across 'multi' or 'single' columns
+    #     column_selectable="multi",  # allow users to select 'multi' or 'single' columns
+    #     row_selectable="multi",     # allow users to select 'multi' or 'single' rows
+    #     row_deletable=True,         # choose if user can delete a row (True) or not (False)
+    #     selected_columns=[],        # ids of columns that user selects
+    #     selected_rows=[],           # indices of rows that user selects
+    #     page_action="native",       # all data is passed to the table up-front or not ('none')
+    #     page_current=0,             # page number that user is on
+    #     page_size=15,                # number of rows visible per page
+    #     style_cell={                # ensure adequate header width when text is shorter than cell's text
+    #         'minWidth': 95, 'maxWidth': 95, 'width': 95
+    #     },
+    #     # style_cell_conditional=[    # align text columns to left. By default they are aligned to right
+    #     #     {
+    #     #         'if': {'column_id': c},
+    #     #         'textAlign': 'left'
+    #     #     } for c in ['country', 'iso_alpha3']
+    #     # ],
+    #     style_data={                # overflow cells' content into multiple lines
+    #         'whiteSpace': 'normal',
+    #         'height': 'auto'
+    #     }
+    # ),
     html.Br(),
     html.Br(),
     html.Div(id='bar-container')
@@ -367,12 +457,32 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
+#Turnovers
+@app.callback(
+    Output("collapse-turnovers-defense", "is_open"),
+    [Input("btn-turnovers-defense", "n_clicks")],
+    [State("collapse-turnovers-defense", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
+#Rebotes
+@app.callback(
+    Output("collapse-rebounding-defense", "is_open"),
+    [Input("btn-rebounding-defense", "n_clicks")],
+    [State("collapse-rebounding-defense", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 @app.callback(
-    Output("collapse-free-throws-defensive", "is_open"),
-    [Input("btn-free-throws-defensive", "n_clicks")],
-    [State("collapse-free-throws-defensive", "is_open")],
+    Output("collapse-free_throws-defense", "is_open"),
+    [Input("btn-free-throws-defense", "n_clicks")],
+    [State("collapse-free_throws-defense", "is_open")],
 )
 def toggle_collapse(n, is_open):
     if n:
@@ -383,9 +493,12 @@ def toggle_collapse(n, is_open):
 
 #EQUIPO SELECCIONADO
 @app.callback(
-    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure'), Output('graph-distr-LCI-attack', 'figure'),
-     Output('graph-distr-LCI-defense', 'figure'), Output('graph-TO-team-attack', 'figure'),
-     Output('graph-OffRebounds-team_attack', 'figure'), Output('graph-TO-player-attack', 'figure')],
+    [Output('graph-scatter-assists', 'figure'), Output('graph-parcat-assists', 'figure'),
+     Output('graph-distr-LCI-attack', 'figure'), Output('graph-effective-FG-percentage-attack', 'figure'),
+     Output('graph-TO-team-attack', 'figure'),
+     Output('graph-OffRebounds-team_attack', 'figure'), Output('graph-TO-player-attack', 'figure'),
+     Output('graph-freethrows-team-attack', 'figure'), Output('graph-TO-team-defense', 'figure'),
+     Output('graph-DefRebounds-team-defense', 'figure'), Output('graph-freethrows-team-defense', 'figure')],
     [Input('dropdown-team-local', 'value')])
 
 def update_figures(selected_team):
@@ -413,7 +526,6 @@ def update_figures(selected_team):
     fig_asisst_vs_not_assisted.update_yaxes(showspikes=True)
 
     fig_asisst_vs_not_assisted.update_layout(
-        title="Plot Title",
         xaxis_title="Points Assisted",
         yaxis_title="Points NOT Assisted")
 #-----------------------------------------------------------------------------------------------------------------------
@@ -441,6 +553,7 @@ def update_figures(selected_team):
 # GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO EN ATAQUE
 
     fig_distr_LCI_attack = Grafico_barras_acumulado_2(stats_df_league_added, selected_team, '2PTA%', '3PTA%', '2Pts', '3PTs')
+    fig_eff_FG_perc_attack =  Grafico_barras_simple(stats_df_league_added, selected_team, 'eFG%', 'Effective Field Goal %')
 
 # GRAFICO DE BARRAS DE DISTRIBUCION DE TURNOVERS EN ATAQUE
     #Por equipo
@@ -449,69 +562,79 @@ def update_figures(selected_team):
     player_stats_df_with_team_to_graph = x_team_stats_df(player_stats_df_with_team, selected_team)
     fig_TO_player_attack = Grafico_barras_simple_players(player_stats_df_with_team_to_graph, 'TOR%', 'Turnovers')
 
-
-# GRAFICO DE BARRAS DE DISTRIBUCION DE TURNOVERS EN ATAQUE
+# GRAFICO DE BARRAS DE DISTRIBUCION DE REBOTES EN ATAQUE
     fig_Off_Reb_attack = Grafico_barras_simple(stats_df_league_added, selected_team, 'OREB%', 'Offensive Rebound')
 
+# GRAFICO DE BARRAS DE DISTRIBUCION DE FREE THROWS EN ATAQUE
+    fig_FT_attack = Grafico_barras_simple(stats_df_league_added, selected_team, 'FTRate', 'Free Throw')
 
 #-----------------------------------------------------------------------------------------------------------------------
 #DEFENSA
 # GRAFICO DE BARRAS DE DISTRIBUCION DE LANZAMIENTO DE TIROS DE CAMPO EN DEFENSA
+# TODO Agregar grafico de tiros en defensa
 
-    fig_distr_LCI_defense = Grafico_barras_acumulado_2(stats_df_league_added, selected_team, '2PTA%', '3PTA%', '2Pts', '3PTs')
+# GRAFICO DE BARRAS DE DISTRIBUCION DE TURNOVERS EN DEFENSA
+    fig_TO_team_defense = Grafico_barras_simple(stats_df_league_added, selected_team, 'OppTOV%', 'Turnovers')
+
+# GRAFICO DE BARRAS DE DISTRIBUCION DE REBOTES EN DEFENSA
+    fig_Def_Reb_defense = Grafico_barras_simple(stats_df_league_added, selected_team, 'DREB%', 'Offensive Rebound')
+
+# GRAFICO DE BARRAS DE DISTRIBUCION DE FREE THROWS EN DEFENSA
+    fig_FT_defense = Grafico_barras_simple(stats_df_league_added, selected_team, 'OppFTRate', 'Free Throw')
 
 
 
-    return fig_asisst_vs_not_assisted, fig_parcat_assisted, fig_distr_LCI_attack, fig_distr_LCI_defense, \
-           fig_TO_team_attack, fig_Off_Reb_attack, fig_TO_player_attack
+    return fig_asisst_vs_not_assisted, fig_parcat_assisted, fig_distr_LCI_attack, fig_eff_FG_perc_attack, \
+           fig_TO_team_attack, fig_Off_Reb_attack, fig_TO_player_attack, fig_FT_attack, fig_TO_team_defense, \
+           fig_Def_Reb_defense, fig_FT_defense
 
 
 # Callback para la tabla, inhabilito temporalmente
-@app.callback(
-    Output(component_id='bar-container', component_property='children'),
-    [Input(component_id='datatable-interactivity', component_property="derived_virtual_data"),
-     Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_rows'),
-     Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_row_ids'),
-     Input(component_id='datatable-interactivity', component_property='selected_rows'),
-     Input(component_id='datatable-interactivity', component_property='derived_virtual_indices'),
-     Input(component_id='datatable-interactivity', component_property='derived_virtual_row_ids'),
-     Input(component_id='datatable-interactivity', component_property='active_cell'),
-     Input(component_id='datatable-interactivity', component_property='selected_cells')]
-)
-
-def update_bar(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows,
-               order_of_rows_indices, order_of_rows_names, actv_cell, slctd_cell):
-    print('***************************************************************************')
-    print('Data across all pages pre or post filtering: {}'.format(all_rows_data))
-    print('---------------------------------------------')
-    print("Indices of selected rows if part of table after filtering:{}".format(slctd_row_indices))
-    print("Names of selected rows if part of table after filtering: {}".format(slct_rows_names))
-    print("Indices of selected rows regardless of filtering results: {}".format(slctd_rows))
-    print('---------------------------------------------')
-    print("Indices of all rows pre or post filtering: {}".format(order_of_rows_indices))
-    print("Names of all rows pre or post filtering: {}".format(order_of_rows_names))
-    print("---------------------------------------------")
-    print("Complete data of active cell: {}".format(actv_cell))
-    print("Complete data of all selected cells: {}".format(slctd_cell))
-
-    dff = pd.DataFrame(all_rows_data)
-
-    # used to highlight selected countries on bar chart
-    colors = ['#7FDBFF' if i in slctd_row_indices else '#0074D9'
-              for i in range(len(dff))]
-
-    if "TEAM" in dff:
-        return [
-            dcc.Graph(id='bar-chart',
-                      figure=px.bar(
-                          data_frame=dff,
-                          x="TEAM",
-                          y='AST',
-                          labels={"AST": "Asistencias"}
-                      ).update_layout(showlegend=False, xaxis={'categoryorder': 'total ascending'})
-                      .update_traces(marker_color=colors, hovertemplate="<b>%{y}%</b><extra></extra>")
-                      )
-        ]
+# @app.callback(
+#     Output(component_id='bar-container', component_property='children'),
+#     [Input(component_id='datatable-interactivity', component_property="derived_virtual_data"),
+#      Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_rows'),
+#      Input(component_id='datatable-interactivity', component_property='derived_virtual_selected_row_ids'),
+#      Input(component_id='datatable-interactivity', component_property='selected_rows'),
+#      Input(component_id='datatable-interactivity', component_property='derived_virtual_indices'),
+#      Input(component_id='datatable-interactivity', component_property='derived_virtual_row_ids'),
+#      Input(component_id='datatable-interactivity', component_property='active_cell'),
+#      Input(component_id='datatable-interactivity', component_property='selected_cells')]
+# )
+#
+# def update_bar(all_rows_data, slctd_row_indices, slct_rows_names, slctd_rows,
+#                order_of_rows_indices, order_of_rows_names, actv_cell, slctd_cell):
+#     print('***************************************************************************')
+#     print('Data across all pages pre or post filtering: {}'.format(all_rows_data))
+#     print('---------------------------------------------')
+#     print("Indices of selected rows if part of table after filtering:{}".format(slctd_row_indices))
+#     print("Names of selected rows if part of table after filtering: {}".format(slct_rows_names))
+#     print("Indices of selected rows regardless of filtering results: {}".format(slctd_rows))
+#     print('---------------------------------------------')
+#     print("Indices of all rows pre or post filtering: {}".format(order_of_rows_indices))
+#     print("Names of all rows pre or post filtering: {}".format(order_of_rows_names))
+#     print("---------------------------------------------")
+#     print("Complete data of active cell: {}".format(actv_cell))
+#     print("Complete data of all selected cells: {}".format(slctd_cell))
+#
+#     dff = pd.DataFrame(all_rows_data)
+#
+#     # used to highlight selected countries on bar chart
+#     colors = ['#7FDBFF' if i in slctd_row_indices else '#0074D9'
+#               for i in range(len(dff))]
+#
+#     if "TEAM" in dff:
+#         return [
+#             dcc.Graph(id='bar-chart',
+#                       figure=px.bar(
+#                           data_frame=dff,
+#                           x="TEAM",
+#                           y='AST',
+#                           labels={"AST": "Asistencias"}
+#                       ).update_layout(showlegend=False, xaxis={'categoryorder': 'total ascending'})
+#                       .update_traces(marker_color=colors, hovertemplate="<b>%{y}%</b><extra></extra>")
+#                       )
+#         ]
 
 #
 # @app.route('/')
